@@ -1,0 +1,180 @@
+- name: Arch Init Playbook
+  hosts: localhost
+  vars:
+      source_key: "ssh/id_rsa"
+      dest_key: "{{ lookup('env', 'HOME') }}/.ssh/id_rsa"
+
+  tasks:
+    
+    - name: Check Mirror List Backup File
+      stat:
+        path: /etc/pacman.d/mirrorlist.backup
+      register: mirrorlist_backup
+      tags:
+        - pacman
+        - pacman.mirror
+
+    - name: Backup Mirror list
+      become: yes
+      copy:
+        src: /etc/pacman.d/mirrorlist
+        dest: /etc/pacman.d/mirrorlist.backup
+      when: not mirrorlist_backup.stat.exists
+      tags:
+        - pacman
+        - pacman.mirror
+      
+    - name: Add Aliyun Mirror if NOT exists
+      become: yes
+      lineinfile:
+        path: /etc/pacman.d/mirrorlist
+        line: "Server = http://mirrors.aliyun.com/archlinux/$repo/os/$arch"
+        insertbefore: BOF 
+        state: present
+      tags:
+        - pacman
+        - pacman.mirror
+
+    - name: Update pacman.conf - Color
+      become: yes
+      replace:
+        path: /etc/pacman.conf
+        regexp: '^#Color'
+        replace: 'Color'
+      tags:
+        - pacman
+        - pacman.conf
+
+    - name: Update pacman.conf - ParallelDownload
+      become: yes
+      replace:
+        path: /etc/pacman.conf
+        regexp: '^#ParallelDownloads = 5'
+        replace: 'ParallelDownloads = 5'
+      tags:
+        - pacman
+        - pacman.conf
+
+    - name: Update pacman.conf - VerbosePkgLists
+      become: yes
+      replace:
+        path: /etc/pacman.conf
+        regexp: '^#VerbosePkgLists'
+        replace: 'VerbosePkgLists'
+      tags:
+        - pacman
+        - pacman.conf
+
+    - name: Update pacman.conf - ILoveCandy
+      become: yes
+      lineinfile:
+        path: /etc/pacman.conf
+        line: "ILoveCandy"
+        insertafter: "# Misc options"
+        state: present
+      tags:
+        - pacman
+        - pacman.conf
+
+    - name: Update pamcam.conf - [multilib]
+      become: yes
+      replace:
+        path: /etc/pacman.conf
+        regexp: "^#\\[multilib\\]\\n#Include = /etc/pacman.d/mirrorlist"
+        replace: "[multilib]\nInclude = /etc/pacman.d/mirrorlist"
+      tags:
+        - pacman
+        - pacman.conf
+
+    - name: Pacman Update & Upgrade
+      become: yes
+      pacman:
+        update_cache: yes
+        upgrade: yes
+      tags:
+        - pacman
+        - pacman.upgrade
+
+    - name: Install Noto Fonts
+      become: yes
+      pacman:
+        name: noto-fonts
+        state: present
+      tags:
+        - font
+
+    - name: Install Noto CJK Fonts
+      become: yes
+      pacman:
+        name: noto-fonts-cjk
+        state: present
+      tags:
+        - font
+
+    - name: Install Noto Emoji Fonts
+      become: yes
+      pacman:
+        name: noto-fonts-emoji
+        state: present
+      tags:
+        - font
+
+    - name: Install Noto Extra Fonts
+      become: yes
+      pacman:
+        name: noto-fonts-extra
+        state: present
+      tags:
+        - font
+
+    - name: Install Firefox
+      become: yes
+      pacman:
+        name: firefox
+        state: present
+      tags:
+        - browser
+
+    - name: git user.email
+      git_config:
+        name: user.email
+        scope: global
+        value: "curelesss@gmail.com"
+      tags:
+        - git
+        - github
+
+    - name: git user.name
+      git_config:
+        name: user.name
+        scope: global
+        value: "curelesss"
+      tags:
+        - git
+        - github
+
+    - name: Ensure .ssh directory exists.
+      file:
+        dest: "{{ dest_key | dirname }}"
+        mode: 0700
+        state: directory
+      tags:
+        - ssh
+        - github
+
+    - name: Install ssh key
+      copy:
+        src: "{{ source_key }}"
+        dest: "{{ dest_key }}"
+        mode: 0600
+      tags:
+        - ssh
+        - github
+
+    - name: Install git config
+      ansible.builtin.command:
+        cmd: cp ssh/config "{{ lookup('env', 'HOME') }}/.ssh/"
+      tags:
+        - ssh
+        - github
+
