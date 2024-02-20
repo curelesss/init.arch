@@ -178,3 +178,18 @@
         - ssh
         - github
 
+    - name: Set Grub to Output System Loading Info
+      become: yes
+      ansible.builtin.replace:
+        path: /etc/default/grub
+        regexp: '^(\s*)GRUB_CMDLINE_LINUX_DEFAULT=.*$'
+        replace: '\1GRUB_CMDLINE_LINUX_DEFAULT=""'
+      tags:
+        - grub
+
+    - name: Update GRUB configuration
+      become: yes
+      ansible.builtin.command:
+        cmd: grub-mkconfig -o /boot/grub/grub.cfg
+      tags:
+        - grub
