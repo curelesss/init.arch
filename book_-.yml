@@ -178,6 +178,14 @@
         - ssh
         - github
 
+    - name: Install openssh
+      become: yes
+      pacman:
+        name: openssh
+        state: present
+      tags:
+        - ssh
+
     - name: Set Grub to Output System Loading Info
       become: yes
       ansible.builtin.replace:
