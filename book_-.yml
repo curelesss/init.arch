@@ -201,3 +201,45 @@
         cmd: grub-mkconfig -o /boot/grub/grub.cfg
       tags:
         - grub
+          
+    - name: Clone Yay
+      git:
+        repo: https://aur.archlinux.org/yay-bin.git
+        dest: "~/yay"
+        update: true
+      tags:
+        - yay
+
+    - name: Build and Install Yay
+      command:
+        chdir: "~/yay"
+        cmd: "makepkg -sfi --noconfirm"
+        creates: /usr/bin/yay
+      tags:
+        - yay
+
+
+    - name: Install Ansible Galaxy Package kewlfft for Yay tasks
+      command: ansible-galaxy collection install kewlfft.aur
+      tags:
+        - yay.ansible
+
+    - name: Create the `aur_builder` user
+      become: yes
+      ansible.builtin.user:
+        name: aur_builder
+        create_home: yes
+        group: wheel
+      tags:
+        - yay.ansible
+
+    - name: Allow the `aur_builder` user to run `sudo pacman` without a password
+      become: yes
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers.d/11-install-aur_builder
+        line: 'aur_builder ALL=(ALL) NOPASSWD: /usr/bin/pacman'
+        create: yes
+        mode: 0644
+        validate: 'visudo -cf %s'
+      tags:
+        - yay.ansible
