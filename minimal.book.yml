@@ -1,0 +1,63 @@
+- name: Gnome Installation Playbook for Minimal Arch
+  hosts: localhost
+
+  tasks:
+
+    - name: Install Xorg
+      become: yes
+      pacman:
+        name: xorg
+        state: present
+      tags:
+        - xorg
+
+    - name: Install Xorg Server
+      become: yes
+      pacman:
+        name: xorg-server
+        state: present
+      tags:
+        - xorg
+
+    - name: Install Xorg Xinit
+      become: yes
+      pacman:
+        name: xorg-xinit
+        state: present
+      tags:
+        - xorg
+
+    - name: Install Gnome
+      become: yes
+      pacman:
+        name: gnome
+        state: present
+      tags:
+        - gnome
+
+    - name: Copy Xinitrc
+      ansible.builtin.copy: 
+        src: /etc/X11/xinit/xinitrc
+        dest: ~/.xinitrc
+      tags:
+        - xinit
+
+    - name: Modify .Xinitrc 1
+      ansible.builtin.lineinfile: 
+        path: ~/.xinitrc
+        state: absent
+        regexp: '^(exec.*|.*&)$'
+      tags:
+        - xinit
+
+    - name: Modify .Xinitrc 2
+      ansible.builtin.shell: 
+        cmd: "grep -vxF -f xinitrc.append -e '^$' ~/.xinitrc > ~/.xinitrc.tmp && mv ~/.xinitrc.tmp ~/.xinitrc"
+      tags:
+        - test
+
+    - name: Modify .Xinitrc 3
+      ansible.builtin.shell: 
+        cmd: cat xinitrc.append >> ~/.xinitrc
+      tags:
+        - xinit
