@@ -1,4 +1,5 @@
 - name: Arch Init Playbook
+  gather_facts: no
   hosts: localhost
   vars:
       source_key: "ssh/id_rsa"
@@ -6,7 +7,7 @@
 
   tasks:
     
-    - name: Check Mirror List Backup File
+    - name: Check Mirror List Backup File <pacman.mirror>
       stat:
         path: /etc/pacman.d/mirrorlist.backup
       register: mirrorlist_backup
@@ -14,7 +15,7 @@
         - pacman
         - pacman.mirror
 
-    - name: Backup Mirror list
+    - name: Backup Mirror list <pacman.mirror>
       become: yes
       copy:
         src: /etc/pacman.d/mirrorlist
@@ -24,7 +25,7 @@
         - pacman
         - pacman.mirror
       
-    - name: Add Aliyun Mirror if NOT exists
+    - name: Add Aliyun Mirror if NOT exists <pacman.mirror>
       become: yes
       lineinfile:
         path: /etc/pacman.d/mirrorlist
@@ -35,7 +36,7 @@
         - pacman
         - pacman.mirror
 
-    - name: Update pacman.conf - Color
+    - name: Update pacman.conf - Color <pacman.conf>
       become: yes
       replace:
         path: /etc/pacman.conf
@@ -45,7 +46,7 @@
         - pacman
         - pacman.conf
 
-    - name: Update pacman.conf - ParallelDownload
+    - name: Update pacman.conf - ParallelDownload <pacman.conf>
       become: yes
       replace:
         path: /etc/pacman.conf
@@ -55,7 +56,7 @@
         - pacman
         - pacman.conf
 
-    - name: Update pacman.conf - VerbosePkgLists
+    - name: Update pacman.conf - VerbosePkgLists <pacman.conf>
       become: yes
       replace:
         path: /etc/pacman.conf
@@ -65,7 +66,7 @@
         - pacman
         - pacman.conf
 
-    - name: Update pacman.conf - ILoveCandy
+    - name: Update pacman.conf - ILoveCandy <pacman.conf>
       become: yes
       lineinfile:
         path: /etc/pacman.conf
@@ -76,7 +77,7 @@
         - pacman
         - pacman.conf
 
-    - name: Update pamcam.conf - [multilib]
+    - name: Update pamcam.conf - [multilib] <pacman.conf>
       become: yes
       replace:
         path: /etc/pacman.conf
@@ -86,7 +87,7 @@
         - pacman
         - pacman.conf
 
-    - name: Pacman Update & Upgrade
+    - name: Pacman Update & Upgrade <pacman.upgrade>
       become: yes
       pacman:
         update_cache: yes
@@ -95,7 +96,15 @@
         - pacman
         - pacman.upgrade
 
-    - name: Install Noto Fonts
+    - name: Install Font Config <font>
+      become: yes
+      pacman:
+        name: fontconfig
+        state: present
+      tags:
+        - font
+
+    - name: Install Noto Fonts <font>
       become: yes
       pacman:
         name: noto-fonts
@@ -103,7 +112,7 @@
       tags:
         - font
 
-    - name: Install Noto CJK Fonts
+    - name: Install Noto CJK Fonts <font>
       become: yes
       pacman:
         name: noto-fonts-cjk
@@ -111,7 +120,7 @@
       tags:
         - font
 
-    - name: Install Noto Emoji Fonts
+    - name: Install Noto Emoji Fonts <font>
       become: yes
       pacman:
         name: noto-fonts-emoji
@@ -119,7 +128,7 @@
       tags:
         - font
 
-    - name: Install Noto Extra Fonts
+    - name: Install Noto Extra Fonts <font>
       become: yes
       pacman:
         name: noto-fonts-extra
@@ -127,7 +136,7 @@
       tags:
         - font
 
-    - name: Install Firefox
+    - name: Install Firefox <browser>
       become: yes
       pacman:
         name: firefox
@@ -135,7 +144,7 @@
       tags:
         - browser
 
-    - name: git user.email
+    - name: git user.email <git> <github>
       git_config:
         name: user.email
         scope: global
@@ -144,7 +153,7 @@
         - git
         - github
 
-    - name: git user.name
+    - name: git user.name <git> <github>
       git_config:
         name: user.name
         scope: global
@@ -153,7 +162,7 @@
         - git
         - github
 
-    - name: Ensure .ssh directory exists.
+    - name: Ensure .ssh directory exists <ssh> <github>
       file:
         dest: "{{ dest_key | dirname }}"
         mode: 0700
@@ -162,7 +171,7 @@
         - ssh
         - github
 
-    - name: Install ssh key
+    - name: Install ssh key <ssh> <github>
       copy:
         src: "{{ source_key }}"
         dest: "{{ dest_key }}"
@@ -171,14 +180,14 @@
         - ssh
         - github
 
-    - name: Install git config
+    - name: Install git config <ssh> <github>
       ansible.builtin.command:
         cmd: cp ssh/config "{{ lookup('env', 'HOME') }}/.ssh/"
       tags:
         - ssh
         - github
 
-    - name: Install openssh
+    - name: Install openssh <ssh>
       become: yes
       pacman:
         name: openssh
@@ -186,7 +195,7 @@
       tags:
         - ssh
 
-    - name: Set Grub to Output System Loading Info
+    - name: Set Grub to Output System Loading Info <grub>
       become: yes
       ansible.builtin.replace:
         path: /etc/default/grub
@@ -195,14 +204,14 @@
       tags:
         - grub
 
-    - name: Update GRUB configuration
+    - name: Update GRUB configuration <grub>
       become: yes
       ansible.builtin.command:
         cmd: grub-mkconfig -o /boot/grub/grub.cfg
       tags:
         - grub
           
-    - name: Clone Yay
+    - name: Clone Yay <yay>
       git:
         repo: https://aur.archlinux.org/yay-bin.git
         dest: "~/yay"
@@ -210,7 +219,7 @@
       tags:
         - yay
 
-    - name: Build and Install Yay
+    - name: Build and Install Yay <yay>
       command:
         chdir: "~/yay"
         cmd: "makepkg -sfi --noconfirm"
@@ -218,13 +227,12 @@
       tags:
         - yay
 
-
-    - name: Install Ansible Galaxy Package kewlfft for Yay tasks
+    - name: Install Ansible Galaxy Package kewlfft for Yay tasks <yay.ansible>
       command: ansible-galaxy collection install kewlfft.aur
       tags:
         - yay.ansible
 
-    - name: Create the `aur_builder` user
+    - name: Create the `aur_builder` user <yay.ansible>
       become: yes
       ansible.builtin.user:
         name: aur_builder
@@ -233,7 +241,7 @@
       tags:
         - yay.ansible
 
-    - name: Allow the `aur_builder` user to run `sudo pacman` without a password
+    - name: Allow the `aur_builder` user to run `sudo pacman` without a password <yay.ansible>
       become: yes
       ansible.builtin.lineinfile:
         path: /etc/sudoers.d/11-install-aur_builder
@@ -243,3 +251,42 @@
         validate: 'visudo -cf %s'
       tags:
         - yay.ansible
+          
+    - name: Install Emacs <dotfile.emacs> <emacs.install>
+      become: yes
+      pacman:
+        name: emacs
+        state: present
+      tags:
+        - dotfile
+        - dotfile.emacs
+        - emacs
+        - emacs.install
+
+    - name: Clone .emacs.d repository <dotfile.clone.emacs> <emacs.dotfile>
+      git:
+        repo: git@github.com:curelesss/.emacs.d.git
+        dest: "~/.emacs.d"
+      tags:
+        - dotfile
+        - dotfile.clone
+        - dotfile.clone.emacs
+        - emacs
+        - emacs.dotfile
+
+    - name: Clone .emacs.d repository <dotfile.clone.dotfiles>
+      git:
+        repo: git@github.com:curelesss/.dotfiles.git
+        dest: "~/.dotfiles"
+      tags:
+        - dotfile
+        - dotfile.clone
+        - dotfile.clone.dotfiles
+
+    - name: Launch Emacs to tangle dotfiles <dotfile.prepare>
+      command: emacs
+      tags:
+        - dotfile
+        - dotfile.prepare
+        - test
+
