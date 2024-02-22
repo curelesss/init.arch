@@ -29,7 +29,7 @@
       become: yes
       lineinfile:
         path: /etc/pacman.d/mirrorlist
-        line: "Server = http://mirrors.aliyun.com/archlinux/$repo/os/$arch"
+        line: "Server = https://mirrors.ustc.edu.cn/archlinux/$repo/os/$arch"
         insertbefore: BOF 
         state: present
       tags:
@@ -104,7 +104,7 @@
       tags:
         - font
 
-    - name: Install Noto Fonts <font>
+    - name: Install Noto Font <font>
       become: yes
       pacman:
         name: noto-fonts
@@ -112,7 +112,7 @@
       tags:
         - font
 
-    - name: Install Noto CJK Fonts <font>
+    - name: Install Noto CJK Font <font>
       become: yes
       pacman:
         name: noto-fonts-cjk
@@ -120,7 +120,7 @@
       tags:
         - font
 
-    - name: Install Noto Emoji Fonts <font>
+    - name: Install Noto Emoji Font <font>
       become: yes
       pacman:
         name: noto-fonts-emoji
@@ -128,10 +128,26 @@
       tags:
         - font
 
-    - name: Install Noto Extra Fonts <font>
+    - name: Install Noto Extra Font <font>
       become: yes
       pacman:
         name: noto-fonts-extra
+        state: present
+      tags:
+        - font
+
+    - name: Install Sauce Code Pro Neard Font <font>
+      become: yes
+      pacman:
+        name: ttf-sourcecodepro-nerd
+        state: present
+      tags:
+        - font
+          
+    - name: Install Cantarell Fonts <fonts>
+      become: yes
+      pacman:
+        name: cantarell-fonts
         state: present
       tags:
         - font
