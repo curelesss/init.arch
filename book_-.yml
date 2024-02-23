@@ -143,6 +143,14 @@
         state: present
       tags:
         - font
+
+    - name: Install JetBrains Neard Font <font>
+      become: yes
+      pacman:
+        name: ttf-jetbrains-mono-nerd
+        state: present
+      tags:
+        - font
           
     - name: Install Cantarell Fonts <fonts>
       become: yes
