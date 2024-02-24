@@ -287,6 +287,19 @@
         - emacs
         - emacs.install
 
+    - name: Testing Github Connection
+      command: ssh -T git@github.com
+
+    - name: Clone .fonts
+      git:
+        repo: git@github.com:curelesss/.fonts.git
+        dest: "~/.local/share/fonts/"
+      tags:
+        - dotfile
+
+    - name: refresh font cache
+      command: fc-cache -fv
+
     - name: Clone .emacs.d repository <dotfile.clone.emacs> <emacs.dotfile>
       git:
         repo: git@github.com:curelesss/.emacs.d.git
