@@ -160,6 +160,14 @@
       tags:
         - font
 
+    - name: Install Nerd Fonts Hack
+      become: yes
+      pacman:
+        name: ttf-hack-nerd
+        state: present
+      tags:
+        - font
+
     - name: Install Firefox <browser>
       become: yes
       pacman:
@@ -286,9 +294,6 @@
         - dotfile.emacs
         - emacs
         - emacs.install
-
-    - name: Testing Github Connection
-      command: ssh -T git@github.com
 
     - name: Clone .fonts
       git:
