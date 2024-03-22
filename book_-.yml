@@ -226,6 +226,7 @@
         state: present
       tags:
         - ssh
+        - github
 
     - name: Set Grub to Output System Loading Info <grub>
       become: yes
@@ -262,6 +263,7 @@
     - name: Install Ansible Galaxy Package kewlfft for Yay tasks <yay.ansible>
       command: ansible-galaxy collection install kewlfft.aur
       tags:
+        - yay
         - yay.ansible
 
     - name: Create the `aur_builder` user <yay.ansible>
@@ -271,6 +273,7 @@
         create_home: yes
         group: wheel
       tags:
+        - yay
         - yay.ansible
 
     - name: Allow the `aur_builder` user to run `sudo pacman` without a password <yay.ansible>
@@ -282,6 +285,7 @@
         mode: 0644
         validate: 'visudo -cf %s'
       tags:
+        - yay
         - yay.ansible
           
     - name: Install Emacs <dotfile.emacs> <emacs.install>
@@ -304,6 +308,8 @@
 
     - name: refresh font cache
       command: fc-cache -fv
+      tags:
+        - font
 
     - name: Clone .emacs.d repository <dotfile.clone.emacs> <emacs.dotfile>
       git:
@@ -328,7 +334,5 @@
     - name: Launch Emacs to tangle dotfiles <dotfile.prepare>
       command: emacs
       tags:
-        - dotfile
-        - dotfile.prepare
         - test
 
