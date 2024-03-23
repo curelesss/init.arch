@@ -1,2 +1,2 @@
-ansible-playbook book_-.yml --tags=yay --ask-become-pass
+ansible-playbook book_-.yml --tags=yay --become-password-file=sudo.txt
 

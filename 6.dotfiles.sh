@@ -1,2 +1,2 @@
-ansible-playbook book_-.yml --tags=dotfile --ask-become-pass
+ansible-playbook book_-.yml --tags=dotfile --become-password-file=sudo.txt
 

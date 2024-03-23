@@ -288,7 +288,7 @@
         - yay
         - yay.ansible
           
-    - name: Install Emacs <dotfile.emacs> <emacs.install>
+    - name: Install Emacs <dotfile.emacs>
       become: yes
       pacman:
         name: emacs
@@ -296,33 +296,61 @@
       tags:
         - dotfile
         - dotfile.emacs
-        - emacs
-        - emacs.install
+          
+    - name: Install Neovim <dotfile.neovim>
+      become: yes
+      pacman:
+        name: neovim
+        state: present
+      tags:
+        - dotfile
+        - dotfile.neovim
+
+    - name: Install Neovim Configuration <dotfile.neovim.cfg>
+      command: emacs --batch --eval "(require 'org)" --eval '(org-babel-tangle-file "~/.dotfiles/neovim.org")'
+      tags:
+        - dotfile
+        - dotfile.neovim
+        - dotfile.neovim.cfg
+
+    - name: Check fonts directory
+      stat:
+        path: ~/.local/share/fonts/
+      register: fonts_folder
+      tags:
+        - font
 
     - name: Clone .fonts
       git:
         repo: git@github.com:curelesss/.fonts.git
         dest: "~/.local/share/fonts/"
+      when: fonts_folder == False
       tags:
-        - dotfile
+        - font
 
     - name: refresh font cache
       command: fc-cache -fv
       tags:
         - font
 
-    - name: Clone .emacs.d repository <dotfile.clone.emacs> <emacs.dotfile>
+    - name: Check .emacs.d directory
+      stat:
+        path: ~/.emacs.d
+      register: emacs_folder
+      tags:
+        - dotfile
+
+    - name: Clone .emacs.d repository <dotfile.clone.emacs>
       git:
         repo: git@github.com:curelesss/.emacs.d.git
         dest: "~/.emacs.d"
+      when: emacs_folder == False
       tags:
         - dotfile
         - dotfile.clone
         - dotfile.clone.emacs
-        - emacs
-        - emacs.dotfile
 
-    - name: Clone .emacs.d repository <dotfile.clone.dotfiles>
+    - name: Clone .dotfiles repository <dotfile.clone.dotfiles>
       git:
         repo: git@github.com:curelesss/.dotfiles.git
         dest: "~/.dotfiles"
