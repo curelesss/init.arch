@@ -1,1 +1,1 @@
-ansible-playbook book_-.yml --tags=pacman --ask-become-pass 
+ansible-playbook book_-.yml --tags=pacman --become-password-file=sudo.txt
