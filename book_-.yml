@@ -306,13 +306,6 @@
         - dotfile
         - dotfile.neovim
 
-    - name: Install Neovim Configuration <dotfile.neovim.cfg>
-      command: emacs --batch --eval "(require 'org)" --eval '(org-babel-tangle-file "~/.dotfiles/neovim.org")'
-      tags:
-        - dotfile
-        - dotfile.neovim
-        - dotfile.neovim.cfg
-
     - name: Check fonts directory
       stat:
         path: ~/.local/share/fonts/
@@ -324,7 +317,7 @@
       git:
         repo: git@github.com:curelesss/.fonts.git
         dest: "~/.local/share/fonts/"
-      when: fonts_folder == False
+      when: fonts_folder.stat.exists == False
       tags:
         - font
 
@@ -344,20 +337,35 @@
       git:
         repo: git@github.com:curelesss/.emacs.d.git
         dest: "~/.emacs.d"
-      when: emacs_folder == False
+      when: emacs_folder.stat.exists == False
       tags:
         - dotfile
         - dotfile.clone
         - dotfile.clone.emacs
 
+    - name: Check .dotfiles directory
+      stat:
+        path: ~/.dotfiles
+      register: dotfiles_folder
+      tags:
+        - dotfile
+
     - name: Clone .dotfiles repository <dotfile.clone.dotfiles>
       git:
         repo: git@github.com:curelesss/.dotfiles.git
         dest: "~/.dotfiles"
+      when: dotfiles_folder.stat.exists == False
       tags:
         - dotfile
         - dotfile.clone
         - dotfile.clone.dotfiles
+
+    - name: Install Neovim Configuration <dotfile.neovim.cfg>
+      command: emacs --batch --eval "(require 'org)" --eval '(org-babel-tangle-file "~/.dotfiles/neovim.org")'
+      tags:
+        - dotfile
+        - dotfile.neovim
+        - dotfile.neovim.cfg
 
     - name: Launch Emacs to tangle dotfiles <dotfile.prepare>
       command: emacs
