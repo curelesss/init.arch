@@ -260,11 +260,18 @@
       tags:
         - yay
 
+    - name: Install collection community.network
+      community.general.ansible_galaxy_install:
+        type: collection
+        name: kewlfft.aur
+      tags:
+        - yay
+
     - name: Install Ansible Galaxy Package kewlfft for Yay tasks <yay.ansible>
       command: ansible-galaxy collection install kewlfft.aur
       tags:
-        - yay
-        - yay.ansible
+        - yay1
+        - old.collection.install.method.not.in.use
 
     - name: Create the `aur_builder` user <yay.ansible>
       become: yes
