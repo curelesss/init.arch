@@ -1,0 +1,206 @@
+- name: Arch Init Playbook
+  gather_facts: no
+  hosts: localhost
+  vars:
+      source_key: "ssh/id_rsa"
+      dest_key: "{{ lookup('env', 'HOME') }}/.ssh/id_rsa"
+
+  tasks:
+    
+    - name: Check Mirror List Backup File <pacman>
+      stat:
+        path: /etc/pacman.d/mirrorlist.backup
+      register: mirrorlist_backup
+      tags:
+        - pacman
+
+    - name: Backup Mirror list
+      become: yes
+      copy:
+        src: /etc/pacman.d/mirrorlist
+        dest: /etc/pacman.d/mirrorlist.backup
+      when: not mirrorlist_backup.stat.exists
+      tags:
+        - pacman
+      
+    - name: Add USTC Mirror if NOT exists
+      become: yes
+      lineinfile:
+        path: /etc/pacman.d/mirrorlist
+        line: "Server = https://mirrors.ustc.edu.cn/archlinux/$repo/os/$arch"
+        insertbefore: BOF 
+        state: present
+      tags:
+        - pacman
+
+    - name: Update pacman.conf - Color
+      become: yes
+      replace:
+        path: /etc/pacman.conf
+        regexp: '^#Color'
+        replace: 'Color'
+      tags:
+        - pacman
+
+    - name: Update pacman.conf - ParallelDownload
+      become: yes
+      replace:
+        path: /etc/pacman.conf
+        regexp: '^#ParallelDownloads = 5'
+        replace: 'ParallelDownloads = 5'
+      tags:
+        - pacman
+
+    - name: Update pacman.conf - VerbosePkgLists
+      become: yes
+      replace:
+        path: /etc/pacman.conf
+        regexp: '^#VerbosePkgLists'
+        replace: 'VerbosePkgLists'
+      tags:
+        - pacman
+
+    - name: Update pacman.conf - ILoveCandy
+      become: yes
+      lineinfile:
+        path: /etc/pacman.conf
+        line: "ILoveCandy"
+        insertafter: "# Misc options"
+        state: present
+      tags:
+        - pacman
+
+    - name: Update pamcam.conf - [multilib]
+      become: yes
+      replace:
+        path: /etc/pacman.conf
+        regexp: "^#\\[multilib\\]\\n#Include = /etc/pacman.d/mirrorlist"
+        replace: "[multilib]\nInclude = /etc/pacman.d/mirrorlist"
+      tags:
+        - pacman
+
+    - name: Pacman Update & Upgrade
+      become: yes
+      pacman:
+        update_cache: yes
+        upgrade: yes
+      tags:
+        - pacman
+
+    - name: git user.email <git>
+      git_config:
+        name: user.email
+        scope: global
+        value: "curelesss@gmail.com"
+      tags:
+        - git
+        - github
+
+    - name: git user.name
+      git_config:
+        name: user.name
+        scope: global
+        value: "curelesss"
+      tags:
+        - git
+        - github
+
+    - name: Ensure .ssh directory exists
+      file:
+        dest: "{{ dest_key | dirname }}"
+        mode: 0700
+        state: directory
+      tags:
+        - ssh
+        - github
+
+    - name: Install ssh key
+      copy:
+        src: "{{ source_key }}"
+        dest: "{{ dest_key }}"
+        mode: 0600
+      tags:
+        - ssh
+        - github
+
+    - name: Install git config
+      ansible.builtin.command:
+        cmd: cp ssh/config "{{ lookup('env', 'HOME') }}/.ssh/"
+      tags:
+        - ssh
+        - github
+
+    - name: Install openssh
+      become: yes
+      pacman:
+        name: openssh
+        state: present
+      tags:
+        - ssh
+        - github
+
+    - name: Set Grub to Output System Loading Info <grub>
+      become: yes
+      ansible.builtin.replace:
+        path: /etc/default/grub
+        regexp: '^(\s*)GRUB_CMDLINE_LINUX_DEFAULT=.*$'
+        replace: '\1GRUB_CMDLINE_LINUX_DEFAULT=""'
+      tags:
+        - grub
+
+    - name: Update GRUB configuration
+      become: yes
+      ansible.builtin.command:
+        cmd: grub-mkconfig -o /boot/grub/grub.cfg
+      tags:
+        - grub
+          
+    - name: Clone Yay <yay>
+      git:
+        repo: https://aur.archlinux.org/yay-bin.git
+        dest: "~/yay"
+        update: true
+      tags:
+        - yay
+
+    - name: Build and Install Yay
+      command:
+        chdir: "~/yay"
+        cmd: "makepkg -sfi --noconfirm"
+        creates: /usr/bin/yay
+      tags:
+        - yay
+
+    - name: Clean up yay directory
+      file:
+        path: "~/yay"
+        state: absent
+
+    - name: Install collection community.network
+      community.general.ansible_galaxy_install:
+        type: collection
+        name: kewlfft.aur
+      tags:
+        - yay
+
+    - name: Create the `aur_builder` user
+      become: yes
+      ansible.builtin.user:
+        name: aur_builder
+        create_home: yes
+        group: wheel
+      tags:
+        - yay
+        - yay.ansible
+
+    - name: Allow the `aur_builder` user to run `sudo pacman` without a password
+      become: yes
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers.d/11-install-aur_builder
+        line: 'aur_builder ALL=(ALL) NOPASSWD: /usr/bin/pacman'
+        create: yes
+        mode: 0644
+        validate: 'visudo -cf %s'
+      tags:
+        - yay
+        - yay.ansible
