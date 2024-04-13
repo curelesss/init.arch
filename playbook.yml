@@ -204,3 +204,18 @@
       tags:
         - yay
         - yay.ansible
+
+    - name: Check .dotfiles directory
+      stat:
+        path: ~/.dotfiles
+      register: dotfiles_folder
+      tags:
+        - dotfile
+
+    - name: Clone .dotfiles repository <dotfile.clone.dotfiles>
+      git:
+        repo: git@github.com:curelesss/.dotfiles.git
+        dest: "~/.dotfiles"
+      when: dotfiles_folder.stat.exists == False
+      tags:
+        - dotfile
