@@ -155,11 +155,27 @@
       tags:
         - grub
           
+    - name: Check Yay directory
+      stat:
+        path: ~/yay
+      register: yay_folder
+      tags:
+        - yay  
+
     - name: Clone Yay <yay>
       git:
         repo: https://aur.archlinux.org/yay-bin.git
         dest: "~/yay"
-        update: true
+      when: yay_folder.stat.exists == False
+      tags:
+        - yay
+      
+      # dependency for building yay
+    - name: Install debugedit
+      become: yes
+      pacman:
+        name: debugedit
+        state: present
       tags:
         - yay
 
@@ -171,10 +187,10 @@
       tags:
         - yay
 
-    - name: Clean up yay directory
-      file:
-        path: "~/yay"
-        state: absent
+        #    - name: Clean up yay directory
+        #      file:
+        #        path: "~/yay"
+        #        state: absent
 
     - name: Install collection community.network
       community.general.ansible_galaxy_install:
