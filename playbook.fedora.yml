@@ -1,0 +1,33 @@
+- name: Arch Setup Playbook
+  gather_facts: no
+  hosts: localhost
+
+  vars:
+    source_key_vpn: "{{ lookup('env', 'HOME') }}/.dotfiles/ansible.playbook/vpn/my.ovpn"
+    dest_key_vpn: "{{ lookup('env', 'HOME') }}/.vpn/my.ovpn"
+
+  tasks:
+
+    - name: Ensure .vpn directory exists.
+      file:
+        dest: "{{ dest_key_vpn | dirname }}"
+        mode: 0700
+        state: directory
+      tags:
+        - vpn
+        - fedora
+
+    - name: Install vpn key
+      copy:
+        src: "{{ source_key_vpn }}"
+        dest: "{{ dest_key_vpn }}"
+        mode: 0600
+      tags:
+        - vpn
+        - fedora
+
+    - name: Import openvpn configuration
+      command: nmcli connection import type openvpn file {{ dest_key_vpn }}
+      tags:
+        - vpn
+        - fedora
