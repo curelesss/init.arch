@@ -137,7 +137,7 @@
         state: present
       tags:
         - ssh
-        - github
+        - github2
 
     - name: Set Grub to Output System Loading Info <grub>
       become: yes
