@@ -139,12 +139,19 @@
         - ssh
         - github2
 
+    - name: Check if /etc/default/grub exists
+      become: yes
+      ansible.builtin.stat:
+        path: /etc/default/grub
+      register: grub_file
+
     - name: Set Grub to Output System Loading Info <grub>
       become: yes
       ansible.builtin.replace:
         path: /etc/default/grub
         regexp: '^(\s*)GRUB_CMDLINE_LINUX_DEFAULT=.*$'
         replace: '\1GRUB_CMDLINE_LINUX_DEFAULT=""'
+      when: grub_file.stat.exists
       tags:
         - grub
 
@@ -152,6 +159,7 @@
       become: yes
       ansible.builtin.command:
         cmd: grub-mkconfig -o /boot/grub/grub.cfg
+      when: grub_file.stat.exists
       tags:
         - grub
           
@@ -178,6 +186,12 @@
         state: present
       tags:
         - yay
+
+    - name: Install binutils
+      become: yes
+      ansible.builtin.package:
+        name: binutils
+        state: present
 
     - name: Build and Install Yay
       command:
