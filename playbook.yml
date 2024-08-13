@@ -223,6 +223,15 @@
         - yay
         - yay.ansible
 
+    - name: Check if running on WSL
+      command: grep -i microsoft /proc/version
+      register: wsl_check
+      ignore_errors: yes
+
+    - name: Set fact if environment is WSL
+      set_fact:
+        is_wsl: "{{ wsl_check.rc == 0 }}"
+
     - name: Allow the `aur_builder` user to run `sudo pacman` without a password
       become: yes
       ansible.builtin.lineinfile:
@@ -231,6 +240,17 @@
         create: yes
         mode: 0644
         validate: 'visudo -cf %s'
+      when: not is_wsl
       tags:
         - yay
         - yay.ansible
+
+    - name: Add passwordless sudo access for aur_builder
+      become: yes
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers
+        line: 'aur_builder ALL=(ALL) NOPASSWD: ALL'
+        create: no
+        validate: 'visudo -cf %s'
+        state: present
+      when: is_wsl
